@@ -1,32 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { drawPartThumb } from "@/engine/render/partArt";
 import type { Part } from "@/types";
-
-const TW = 150;
-const TH = 72;
-
-function PartThumb({ part }: { part: Part }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const canvas = ref.current;
-    const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx) return;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = TW * dpr;
-    canvas.height = TH * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, TW, TH);
-    drawPartThumb(ctx, part, TW, TH);
-  }, [part]);
-  return <canvas ref={ref} style={{ width: "100%", aspectRatio: `${TW} / ${TH}` }} aria-hidden />;
-}
+import { PartThumb } from "./PartThumb";
 
 interface Props {
   part: Part;
   selected: boolean;
-  /** Texto de la acción al hacer clic (p. ej. "Seleccionar" / "Añadir") */
   stats: string;
   onClick: () => void;
   onDragStart: (part: Part) => void;
@@ -52,7 +31,7 @@ export function PartCard({ part, selected, stats, onClick, onDragStart, onDragEn
       }`}
     >
       <div className="mb-2 border border-line bg-gradient-to-b from-[#1b2330] to-ink">
-        <PartThumb part={part} />
+        <PartThumb part={part} width={150} height={72} />
       </div>
       <div className="text-sm font-semibold">{part.name}</div>
       <div className="mt-1 font-mono text-xs text-muted">{stats}</div>

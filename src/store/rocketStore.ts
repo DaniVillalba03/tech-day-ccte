@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { MAX_TANKS } from "@/data/parts";
+import { insertAt, moveItem, removeAt, replaceAt } from "@/lib/listOps";
 import type { RocketConfig } from "@/types";
 
 export { MAX_TANKS };
@@ -12,6 +13,9 @@ interface RocketState {
   setFin: (id: string) => void;
   addTank: (id: string) => void;
   removeTank: (index: number) => void;
+  replaceTank: (index: number, id: string) => void;
+  moveTank: (from: number, to: number) => void;
+  insertTank: (index: number, id: string) => void;
   setLaunchAngle: (deg: number) => void;
   setName: (name: string) => void;
 }
@@ -40,9 +44,17 @@ export const useRocketStore = create<RocketState>()(
         ),
       removeTank: (index) =>
         set((s) =>
-          s.config.tankIds.length <= 1
+          s.config.tankIds.length <= 1 ? s : { config: { ...s.config, tankIds: removeAt(s.config.tankIds, index) } },
+        ),
+      replaceTank: (index, id) =>
+        set((s) => ({ config: { ...s.config, tankIds: replaceAt(s.config.tankIds, index, id) } })),
+      moveTank: (from, to) =>
+        set((s) => ({ config: { ...s.config, tankIds: moveItem(s.config.tankIds, from, to) } })),
+      insertTank: (index, id) =>
+        set((s) =>
+          s.config.tankIds.length >= MAX_TANKS
             ? s
-            : { config: { ...s.config, tankIds: s.config.tankIds.filter((_, i) => i !== index) } },
+            : { config: { ...s.config, tankIds: insertAt(s.config.tankIds, index, id) } },
         ),
       setLaunchAngle: (deg) =>
         set((s) => ({ config: { ...s.config, launchAngleDeg: Math.min(90, Math.max(15, deg)) } })),

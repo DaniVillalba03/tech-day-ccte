@@ -25,10 +25,11 @@ export function drawRocketSprite(ctx: CanvasRenderingContext2D, config: RocketCo
 
   drawEngine(ctx, engine, x);
   x += engine.length;
-  tanks.forEach((t, i) => {
-    drawBody(ctx, t, x, i);
-    x += t.length;
-  });
+  // tankIds[0] es el cuerpo más cercano a la ojiva: se dibuja de cola a nariz en orden inverso
+  for (let k = tanks.length - 1; k >= 0; k--) {
+    drawBody(ctx, tanks[k], x, k);
+    x += tanks[k].length;
+  }
   drawNose(ctx, nose, x);
 
   if (chute) {
