@@ -16,8 +16,15 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Rocket Lab | CCTE",
-  description: "Simulador y diseño de cohetes 2D",
+  title: { default: "Rocket Lab | CCTE", template: "%s | Rocket Lab CCTE" },
+  description:
+    "Diseña, lanza y compite con cohetes 2D: taller de ensamblaje, simulador de vuelo con física real y ranking de apogeo y distancia.",
+  openGraph: {
+    title: "Rocket Lab | CCTE",
+    description: "Simulador y taller de cohetes 2D con ranking.",
+    type: "website",
+    locale: "es_PY",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
