@@ -17,6 +17,15 @@ describe("validateNewEntry", () => {
     if (r.ok) expect(r.value.pilotName).toBe("Ana");
   });
 
+  it("admite espacios dentro de los nombres", () => {
+    const r = validateNewEntry({ ...valid, pilotName: "  Ana María  López ", rocketName: "Cohete Uno  Dos" });
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.value.pilotName).toBe("Ana María  López");
+      expect(r.value.rocketName).toBe("Cohete Uno  Dos");
+    }
+  });
+
   it.each([
     ["no objeto", null],
     ["piloto vacío", { ...valid, pilotName: "  " }],
