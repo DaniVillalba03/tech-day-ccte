@@ -84,22 +84,6 @@ export function FlightView() {
             Lanzar (Enter) <span aria-hidden>→</span>
           </button>
 
-          <div className="flex items-center gap-1" role="group" aria-label="Pitch">
-            {([1, -1] as const).map((dir) => (
-              <button
-                key={dir}
-                type="button"
-                className="btn btn-outline"
-                aria-label={dir === 1 ? "Inclinar a la izquierda" : "Inclinar a la derecha"}
-                onPointerDown={() => sessionRef.current?.setPitch(dir)}
-                onPointerUp={() => sessionRef.current?.setPitch(0)}
-                onPointerLeave={() => sessionRef.current?.setPitch(0)}
-              >
-                {dir === 1 ? "← A" : "D →"}
-              </button>
-            ))}
-          </div>
-
           <button
             type="button"
             className="btn btn-outline"

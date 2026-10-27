@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import type { RocketConfig } from "@/types";
-import type { FlightInput } from "@/types/flight";
 import { G0 } from "./constants";
 import { airDensity } from "./atmosphere";
 import { buildPhysicsRocket, createInitialState } from "./rocketModel";
@@ -14,7 +13,6 @@ const config: RocketConfig = {
   finId: "fin-medium",
   launchAngleDeg: 90,
 };
-const idle: FlightInput = { pitch: 0 };
 
 function launch(rocket = buildPhysicsRocket(config), angle = 90) {
   const s = createInitialState(rocket, angle);
@@ -38,14 +36,14 @@ describe("updatePhysics", () => {
     s.airborne = true;
     s.y = 1000;
     s.engineOn = false;
-    for (let i = 0; i < 120 * 5; i++) updatePhysics(s, rocket, idle, PHYSICS_DT);
+    for (let i = 0; i < 120 * 5; i++) updatePhysics(s, rocket, PHYSICS_DT);
     expect(-s.vy).toBeCloseTo(G0 * 5, 1);
     expect(s.y).toBeCloseTo(1000 - 0.5 * G0 * 25, 0);
   });
 
   it("conserva la masa: masa final = seca al agotar propelente", () => {
     const { s, rocket } = launch();
-    for (let i = 0; i < 120 * 120 && s.propellant > 0; i++) updatePhysics(s, rocket, idle, PHYSICS_DT);
+    for (let i = 0; i < 120 * 120 && s.propellant > 0; i++) updatePhysics(s, rocket, PHYSICS_DT);
     expect(s.propellant).toBe(0);
     expect(s.mass).toBeCloseTo(rocket.dryMass, 6);
   });
@@ -54,7 +52,7 @@ describe("updatePhysics", () => {
     const rocket = { ...buildPhysicsRocket(config), cd: 0 };
     const { s } = launch(rocket);
     for (let i = 0; i < 120 * 600 && s.status !== "landed" && s.status !== "crashed"; i++) {
-      updatePhysics(s, rocket, idle, PHYSICS_DT);
+      updatePhysics(s, rocket, PHYSICS_DT);
       if (s.status === "descending" && s.y < s.apogee - 10) break;
     }
     const m0 = rocket.dryMass + rocket.propellantMass;
@@ -70,7 +68,7 @@ describe("updatePhysics", () => {
   it("con TWR < 1 el cohete se queda en la plataforma", () => {
     const weak = { ...buildPhysicsRocket({ ...config, engineId: "eng-spark", tankIds: ["tank-l", "tank-l", "tank-l"] }) };
     const { s } = launch(weak);
-    for (let i = 0; i < 120 * 5; i++) updatePhysics(s, weak, idle, PHYSICS_DT);
+    for (let i = 0; i < 120 * 5; i++) updatePhysics(s, weak, PHYSICS_DT);
     expect(s.y).toBe(0);
     expect(s.airborne).toBe(false);
   });
@@ -80,8 +78,8 @@ describe("updatePhysics", () => {
     const vacuumRocket = { ...buildPhysicsRocket(config), cd: 0 };
     const vacuum = launch(vacuumRocket);
     for (let i = 0; i < 120 * 400; i++) {
-      updatePhysics(withDrag.s, withDrag.rocket, idle, PHYSICS_DT);
-      updatePhysics(vacuum.s, vacuumRocket, idle, PHYSICS_DT);
+      updatePhysics(withDrag.s, withDrag.rocket, PHYSICS_DT);
+      updatePhysics(vacuum.s, vacuumRocket, PHYSICS_DT);
     }
     expect(withDrag.s.apogee).toBeLessThan(vacuum.s.apogee);
   });
@@ -90,7 +88,7 @@ describe("updatePhysics", () => {
     const { s, rocket } = launch();
     for (let i = 0; i < 120 * 3000 && s.status !== "landed" && s.status !== "crashed"; i++) {
       if (s.status === "descending") s.chuteDeployed = true;
-      updatePhysics(s, rocket, idle, PHYSICS_DT);
+      updatePhysics(s, rocket, PHYSICS_DT);
     }
     expect(s.status).toBe("landed");
   });
@@ -98,14 +96,14 @@ describe("updatePhysics", () => {
   it("sin paracaídas el impacto es un choque", () => {
     const { s, rocket } = launch();
     for (let i = 0; i < 120 * 3000 && s.status !== "landed" && s.status !== "crashed"; i++)
-      updatePhysics(s, rocket, idle, PHYSICS_DT);
+      updatePhysics(s, rocket, PHYSICS_DT);
     expect(s.status).toBe("crashed");
   });
 
   it("lanzamiento inclinado produce distancia horizontal", () => {
     const { s, rocket } = launch(undefined, 45);
     for (let i = 0; i < 120 * 3000 && s.status !== "landed" && s.status !== "crashed"; i++)
-      updatePhysics(s, rocket, idle, PHYSICS_DT);
+      updatePhysics(s, rocket, PHYSICS_DT);
     expect(s.x).toBeGreaterThan(1000);
   });
 });

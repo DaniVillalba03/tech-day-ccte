@@ -24,11 +24,6 @@ export interface FlightState {
   status: FlightStatus;
 }
 
-export interface FlightInput {
-  /** +1 = A / ←  (aumenta theta), -1 = D / → */
-  pitch: -1 | 0 | 1;
-}
-
 /** Parámetros físicos del cohete ya resueltos (SI). */
 export interface PhysicsRocket {
   dryMass: number;

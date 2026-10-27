@@ -1,4 +1,4 @@
-import type { FlightInput, FlightState, PhysicsRocket } from "@/types/flight";
+import type { FlightState, PhysicsRocket } from "@/types/flight";
 import { dragForce, stabilityRate, wrapAngle } from "./aerodynamics";
 import { airDensity } from "./atmosphere";
 import { G0 } from "./constants";
@@ -11,7 +11,7 @@ export const PHYSICS_DT = 1 / 120;
  * Un paso de Euler semi-implícito (velocidad primero, luego posición). Muta `s`.
  * Unidades SI; y = 0 es el suelo, y > 0 altitud.
  */
-export function updatePhysics(s: FlightState, r: PhysicsRocket, input: FlightInput, dt: number): void {
+export function updatePhysics(s: FlightState, r: PhysicsRocket, dt: number): void {
   if (s.status === "landed" || s.status === "crashed" || s.status === "prelaunch") return;
 
   // 1. Empuje y pérdida de masa
@@ -25,13 +25,15 @@ export function updatePhysics(s: FlightState, r: PhysicsRocket, input: FlightInp
   }
   s.thrustNow = thrust;
 
-  // 2. Orientación: piloto + estabilización aerodinámica (con el viento relativo)
+  // 2. Orientación: sin control manual, las aletas alinean el cohete con el viento relativo
   const speed = Math.hypot(s.vx, s.vy);
   const rho = airDensity(s.y);
-  if (!s.chuteDeployed) s.theta += input.pitch * r.pitchRate * dt;
   if (s.airborne && speed > 5) {
     const flightAngle = Math.atan2(s.vy, s.vx);
-    s.theta += stabilityRate(r.stabilityFactor, rho, speed) * wrapAngle(flightAngle - s.theta) * dt;
+    const turn = stabilityRate(r.stabilityFactor, rho, speed) * wrapAngle(flightAngle - s.theta) * dt;
+    // pitchRate (aletas) limita la velocidad de rotación en rad/s
+    const maxTurn = r.pitchRate * dt;
+    s.theta += Math.max(-maxTurn, Math.min(maxTurn, turn));
   }
   s.theta = wrapAngle(s.theta);
 

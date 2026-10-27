@@ -12,8 +12,12 @@ interface PartBase {
   diameter: number;
 }
 
+export type NoseShape = "conical" | "ogive" | "parabolic" | "elliptical" | "blunt";
+export type FinShape = "rect" | "trapezoid" | "swept" | "delta" | "clipped";
+
 export interface NoseCone extends PartBase {
   category: "nose";
+  shape: NoseShape;
   /** Coeficiente de arrastre aportado */
   cd: number;
 }
@@ -26,14 +30,13 @@ export interface FuelTank extends PartBase {
 
 export interface Engine extends PartBase {
   category: "engine";
-  /** Empuje en N */
+  /** Empuje en N. El impulso específico lo fija el propelente (KNSB). */
   thrust: number;
-  /** Impulso específico en s */
-  isp: number;
 }
 
 export interface Fin extends PartBase {
   category: "fin";
+  shape: FinShape;
   /** Estabilidad aerodinámica (adimensional) */
   stabilityFactor: number;
   /** Velocidad de rotación (pitch) en rad/s */

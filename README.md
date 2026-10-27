@@ -7,8 +7,8 @@ Diseña un cohete, lánzalo con física real y compite en el ranking de **mayor 
 
 ## Cómo se juega
 
-1. **Taller (`/vab`)**: elige ojiva, tanques (hasta 4), motor y aletas, y el ángulo inicial (15°–90°). El panel muestra masa, TWR (con alerta si es < 1), tiempo de quemado y Δv.
-2. **Vuelo (`/flight`)**: `Enter` lanza · `A`/`D` o `←`/`→` inclinan · `Espacio` abre el paracaídas · `1`/`2`/`3` time warp 1x/2x/5x.
+1. **Taller (`/vab`)**: cohete de una sola etapa. Arrastra las piezas al cohete (o haz clic para seleccionarlas): ojiva, hasta 4 cuerpos de propelente, motor y aletas; y elige el ángulo inicial (15°–90°). El panel muestra masa, TWR (con alerta si es < 1), tiempo de quemado y Δv. Todos los cohetes usan el mismo propelente: **KNSB** (nitrato de potasio + sorbitol, Isp 120 s).
+2. **Vuelo (`/flight`)**: `Enter` lanza · `Espacio` abre el paracaídas · `1`/`2`/`3` time warp 1x/2x/5x.
 3. **Fin de misión**: resumen con gráficas de altitud y velocidad, y guardado de la marca.
 4. **Ranking (`/leaderboard`)**: pestañas por apogeo y por distancia, Top 10 / Top 50.
 
@@ -32,8 +32,8 @@ npm run build
 ### Física
 
 - Gravedad constante 9,81 m/s², densidad `ρ = 1,225·e^(−h/8500)` y arrastre `Fd = ½ρv²·Cd·A`.
-- Masa decreciente: `ṁ = T / (Isp·g₀)`; Δv estático `Isp·g₀·ln(m₀/m_f)`.
-- Las aletas alinean el cohete con el viento relativo (giro gravitacional) y fijan la velocidad de pitch.
+- Propelente único KNSB (Isp 120 s): `ṁ = T / (Isp·g₀)`; Δv estático `Isp·g₀·ln(m₀/m_f)`.
+- No hay control manual de orientación: las aletas alinean el cohete con el viento relativo (giro gravitacional) y limitan su velocidad de giro.
 
 ## Persistencia del ranking
 

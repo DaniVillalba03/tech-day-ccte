@@ -1,4 +1,5 @@
 import { getPart } from "@/data/parts";
+import { KNSB } from "@/data/propellant";
 import type { Engine, Fin, FuelTank, NoseCone, RocketConfig, RocketStats } from "@/types";
 import { G0 } from "./constants";
 
@@ -14,10 +15,10 @@ export function computeRocketStats(config: RocketConfig): RocketStats {
   const propellantMass = tanks.reduce((s, t) => s + t.propellantMass, 0);
   const wetMass = dryMass + propellantMass;
 
-  const massFlow = engine.thrust / (engine.isp * G0);
+  const massFlow = engine.thrust / (KNSB.isp * G0);
   const burnTime = massFlow > 0 ? propellantMass / massFlow : 0;
   const twr = engine.thrust / (wetMass * G0);
-  const deltaV = propellantMass > 0 ? engine.isp * G0 * Math.log(wetMass / dryMass) : 0;
+  const deltaV = propellantMass > 0 ? KNSB.isp * G0 * Math.log(wetMass / dryMass) : 0;
 
   const totalLength =
     nose.length + engine.length + tanks.reduce((s, t) => s + t.length, 0);

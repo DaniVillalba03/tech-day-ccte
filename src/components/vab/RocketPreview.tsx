@@ -2,84 +2,107 @@
 
 import { useEffect, useRef } from "react";
 import { getPart } from "@/data/parts";
-import type { Engine, Fin, FuelTank, NoseCone, RocketConfig } from "@/types";
+import { ROCKET_RADIUS, drawRocketSprite, rocketLength } from "@/engine/render/rocketSprite";
+import type { Engine, Fin, FuelTank, NoseCone, PartCategory, RocketConfig } from "@/types";
 
-const W = 240;
-const H = 420;
+const W = 260;
+const H = 520;
 
-function draw(ctx: CanvasRenderingContext2D, config: RocketConfig) {
-  ctx.clearRect(0, 0, W, H);
-  const nose = getPart<NoseCone>(config.noseId);
-  const tanks = config.tankIds.map((id) => getPart<FuelTank>(id));
-  const engine = getPart<Engine>(config.engineId);
-  const fin = getPart<Fin>(config.finId);
-
-  const totalLen = nose.length + engine.length + tanks.reduce((s, t) => s + t.length, 0);
-  const scale = Math.min((H - 40) / totalLen, 90);
-  const cx = W / 2;
-  const bodyW = 0.6 * scale;
-  let y = (H - totalLen * scale) / 2;
-
-  // Ojiva
-  const noseH = nose.length * scale;
-  ctx.fillStyle = "#f9f9f7";
-  ctx.beginPath();
-  ctx.moveTo(cx, y);
-  ctx.quadraticCurveTo(cx + bodyW / 2, y + noseH * (nose.cd > 0.5 ? 0.15 : 0.6), cx + bodyW / 2, y + noseH);
-  ctx.lineTo(cx - bodyW / 2, y + noseH);
-  ctx.quadraticCurveTo(cx - bodyW / 2, y + noseH * (nose.cd > 0.5 ? 0.15 : 0.6), cx, y);
-  ctx.fill();
-  y += noseH;
-
-  // Tanques
-  tanks.forEach((t, i) => {
-    const h = t.length * scale;
-    ctx.fillStyle = i % 2 ? "#d52b32" : "#b8242a";
-    ctx.fillRect(cx - bodyW / 2, y, bodyW, h);
-    ctx.strokeStyle = "#0a0a0a55";
-    ctx.strokeRect(cx - bodyW / 2, y, bodyW, h);
-    y += h;
-  });
-
-  // Aletas (detrás del motor)
-  const engH = engine.length * scale;
-  const finH = fin.length * scale;
-  const finW = (fin.diameter - 0.6) * scale + bodyW / 2;
-  ctx.fillStyle = "#244b8f";
-  for (const dir of [-1, 1]) {
-    ctx.beginPath();
-    ctx.moveTo(cx + (dir * bodyW) / 2, y + engH - finH);
-    ctx.lineTo(cx + dir * (bodyW / 2 + finW * 0.8), y + engH + finH * 0.1);
-    ctx.lineTo(cx + (dir * bodyW) / 2, y + engH);
-    ctx.fill();
-  }
-
-  // Motor + tobera
-  ctx.fillStyle = "#31363e";
-  ctx.fillRect(cx - bodyW * 0.35, y, bodyW * 0.7, engH * 0.6);
-  ctx.beginPath();
-  ctx.moveTo(cx - bodyW * 0.25, y + engH * 0.6);
-  ctx.lineTo(cx + bodyW * 0.25, y + engH * 0.6);
-  ctx.lineTo(cx + bodyW * 0.4, y + engH);
-  ctx.lineTo(cx - bodyW * 0.4, y + engH);
-  ctx.fill();
+interface Props {
+  config: RocketConfig;
+  /** Categoría de la pieza que se está arrastrando: resalta dónde encaja */
+  highlight?: PartCategory | null;
+  /** El cursor está sobre la zona de soltar */
+  over?: boolean;
 }
 
-export function RocketPreview({ config }: { config: RocketConfig }) {
+function draw(ctx: CanvasRenderingContext2D, config: RocketConfig, highlight: PartCategory | null, over: boolean) {
+  ctx.clearRect(0, 0, W, H);
+
+  // Rejilla de fondo tipo plano de ingeniería
+  ctx.strokeStyle = "rgba(255,255,255,0.05)";
+  ctx.lineWidth = 1;
+  for (let x = 0; x <= W; x += 26) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, H);
+    ctx.stroke();
+  }
+  for (let y = 0; y <= H; y += 26) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+
+  const L = rocketLength(config);
+  const s = Math.min((H - 80) / L, 90);
+  const cx = W / 2;
+  const top = (H - L * s) / 2;
+
+  ctx.save();
+  ctx.translate(cx, H / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.scale(s, s);
+  drawRocketSprite(ctx, config, false);
+  ctx.restore();
+
+  if (!highlight) return;
+
+  // Zonas donde encaja cada categoría (la ojiva arriba, la cola abajo)
+  const nose = getPart<NoseCone>(config.noseId);
+  const engine = getPart<Engine>(config.engineId);
+  const fin = getPart<Fin>(config.finId);
+  const bodyLen = config.tankIds.reduce((a, id) => a + getPart<FuelTank>(id).length, 0);
+  const half = ROCKET_RADIUS * s;
+  const finSpan = ((fin.diameter - 0.6) / 2 + 0.05) * s;
+  const bottom = top + L * s;
+
+  let rect: [number, number, number, number];
+  switch (highlight) {
+    case "nose":
+      rect = [cx - half - 6, top - 4, 2 * half + 12, nose.length * s + 8];
+      break;
+    case "tank":
+      rect = [cx - half - 6, top + nose.length * s, 2 * half + 12, bodyLen * s];
+      break;
+    case "engine":
+      rect = [cx - half - 6, bottom - engine.length * s - 2, 2 * half + 12, engine.length * s + 6];
+      break;
+    case "fin":
+      rect = [cx - half - finSpan - 6, bottom - engine.length * s * 0.3 - fin.length * s - 2, 2 * (half + finSpan) + 12, fin.length * s + 8];
+      break;
+  }
+  ctx.fillStyle = over ? "rgba(213,43,50,0.28)" : "rgba(111,155,236,0.14)";
+  ctx.strokeStyle = over ? "#d52b32" : "#6f9bec";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
+  ctx.fillRect(...rect);
+  ctx.strokeRect(...rect);
+  ctx.setLineDash([]);
+}
+
+export function RocketPreview({ config, highlight = null, over = false }: Props) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = ref.current;
     const ctx = canvas?.getContext("2d");
-    if (canvas && ctx) draw(ctx, config);
-  }, [config]);
+    if (!canvas || !ctx) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw(ctx, config, highlight, over);
+  }, [config, highlight, over]);
 
   return (
     <canvas
       ref={ref}
-      width={W}
-      height={H}
+      style={{ width: "100%", maxWidth: W, aspectRatio: `${W} / ${H}` }}
       className="panel bg-gradient-to-b from-[#1b2330] to-ink"
+      role="img"
+      aria-label={`Vista previa del cohete ${config.name}`}
     />
   );
 }

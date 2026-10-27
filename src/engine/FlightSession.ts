@@ -41,7 +41,7 @@ export class FlightSession {
       step: () => {
         const prev = this.state.status;
         if (prev === "landed" || prev === "crashed") return;
-        updatePhysics(this.state, this.rocket, this.input.state, PHYSICS_DT);
+        updatePhysics(this.state, this.rocket, PHYSICS_DT);
         const st = this.state.status;
         if (st !== "prelaunch") this.telemetry.record(this.state, st === "landed" || st === "crashed");
       },
@@ -77,10 +77,6 @@ export class FlightSession {
 
   setWarp(w: number) {
     this.loop.warp = w;
-  }
-
-  setPitch(dir: -1 | 0 | 1) {
-    this.input.setPitch(dir);
   }
 
   reset() {
