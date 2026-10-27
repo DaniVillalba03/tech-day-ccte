@@ -4,6 +4,7 @@ import { Camera } from "./camera";
 import { drawGround } from "./ground";
 import type { ParticleSystem } from "./particles";
 import { drawRocketSprite } from "./rocketSprite";
+import { drawBackdrop, drawStructures } from "./scenery";
 import { drawSky } from "./sky";
 
 /** Tamaño mínimo (px/m) del sprite para que el cohete siga visible al alejar la cámara */
@@ -34,7 +35,9 @@ export class Renderer {
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
 
     drawSky(ctx, cam.width, cam.height, s.y);
+    drawBackdrop(ctx, cam, s.y);
     drawGround(ctx, cam);
+    drawStructures(ctx, cam, s.status === "prelaunch");
     particles.draw(ctx, cam);
 
     // Sobre/cerca del suelo la cola apoya en el punto; en altura gira alrededor del centro

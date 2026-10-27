@@ -5,6 +5,8 @@ export interface LeaderboardRepository {
   /** Mejores `limit` registros ordenados de mayor a menor según `type`. */
   list(type: LeaderboardType, limit: number): Promise<LeaderboardEntry[]>;
   add(entry: NewLeaderboardEntry): Promise<LeaderboardEntry>;
+  /** Elimina un registro; devuelve false si no existía. */
+  remove(id: string): Promise<boolean>;
 }
 
 export const SORT_FIELD: Record<LeaderboardType, "apogee" | "distance"> = {

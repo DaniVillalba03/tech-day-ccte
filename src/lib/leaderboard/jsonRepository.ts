@@ -36,4 +36,16 @@ export class JsonLeaderboardRepository implements LeaderboardRepository {
     this.writeQueue = run.catch(() => undefined);
     return run;
   }
+
+  remove(id: string): Promise<boolean> {
+    const run = this.writeQueue.then(async () => {
+      const all = await this.read();
+      const next = all.filter((e) => e.id !== id);
+      if (next.length === all.length) return false;
+      await fs.writeFile(this.file, JSON.stringify(next, null, 2), "utf8");
+      return true;
+    });
+    this.writeQueue = run.catch(() => undefined);
+    return run;
+  }
 }

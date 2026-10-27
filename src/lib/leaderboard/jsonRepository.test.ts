@@ -49,4 +49,12 @@ describe("JsonLeaderboardRepository", () => {
     await Promise.all(Array.from({ length: 20 }, (_, i) => repo.add(entry(`P${i}`, i, i))));
     expect(await repo.list("apogee", 50)).toHaveLength(20);
   });
+
+  it("elimina un registro y devuelve false si no existe", async () => {
+    const a = await repo.add(entry("A", 1, 1));
+    await repo.add(entry("B", 2, 2));
+    expect(await repo.remove(a.id)).toBe(true);
+    expect(await repo.remove(a.id)).toBe(false);
+    expect((await repo.list("apogee", 10)).map((e) => e.pilotName)).toEqual(["B"]);
+  });
 });

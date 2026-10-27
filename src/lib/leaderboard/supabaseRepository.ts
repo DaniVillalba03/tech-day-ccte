@@ -62,4 +62,13 @@ export class SupabaseLeaderboardRepository implements LeaderboardRepository {
     const [row] = (await res.json()) as Row[];
     return toEntry(row);
   }
+
+  async remove(id: string) {
+    const res = await fetch(`${this.url}/rest/v1/${this.table}?id=eq.${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: this.headers({ Prefer: "return=representation" }),
+    });
+    if (!res.ok) throw new Error(`Supabase delete falló (${res.status})`);
+    return ((await res.json()) as Row[]).length > 0;
+  }
 }
