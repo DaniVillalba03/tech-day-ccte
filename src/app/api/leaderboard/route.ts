@@ -1,4 +1,3 @@
-import { ADMIN_HEADER, adminConfigured, isAdminKeyValid } from "@/lib/adminAuth";
 import { getLeaderboardRepository } from "@/lib/leaderboard";
 import { validateNewEntry } from "@/lib/validation";
 import type { LeaderboardType } from "@/types/leaderboard";
@@ -44,11 +43,8 @@ export async function POST(request: Request) {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** DELETE /api/leaderboard?id=<uuid> — solo administrador (cabecera x-admin-key). */
+/** DELETE /api/leaderboard?id=<uuid> — elimina una marca. */
 export async function DELETE(request: Request) {
-  if (!adminConfigured()) return Response.json({ error: "Administración no configurada" }, { status: 503 });
-  if (!isAdminKeyValid(request.headers.get(ADMIN_HEADER))) return Response.json({ error: "No autorizado" }, { status: 401 });
-
   const id = new URL(request.url).searchParams.get("id") ?? "";
   if (!UUID.test(id)) return Response.json({ error: "id inválido" }, { status: 400 });
 

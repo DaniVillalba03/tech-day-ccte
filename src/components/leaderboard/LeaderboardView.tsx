@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getPart } from "@/data/parts";
-import { useMounted } from "@/lib/useMounted";
 import type { LeaderboardEntry, LeaderboardType } from "@/types/leaderboard";
 
 const TABS: { type: LeaderboardType; label: string; hint: string }[] = [
@@ -23,73 +22,26 @@ const partName = (id: string) => {
 const partsLabel = (p: LeaderboardEntry["parts"]) =>
   [partName(p.noseId), p.tankIds.map(partName).join(" + "), partName(p.engineId), partName(p.finId)].join(" · ");
 
-const ADMIN_KEY_STORAGE = "lb-admin-key";
-
-function readStoredKey(): string | null {
-  try {
-    return sessionStorage.getItem(ADMIN_KEY_STORAGE);
-  } catch {
-    return null;
-  }
-}
-
 type State = { status: "loading" } | { status: "error"; message: string } | { status: "ok"; entries: LeaderboardEntry[] };
+
+function TrashIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M3 6h18" />
+      <path d="M8 6V4h8v2" />
+      <path d="M6 6l1 14h10l1-14" />
+      <path d="M10 10v6M14 10v6" />
+    </svg>
+  );
+}
 
 export function LeaderboardView() {
   const [type, setType] = useState<LeaderboardType>("apogee");
   const [limit, setLimit] = useState<(typeof LIMITS)[number]>(10);
   const [state, setState] = useState<State>({ status: "loading" });
   const [reload, setReload] = useState(0);
-  const mounted = useMounted();
-  // undefined = sin decisión explícita: se toma de la sesión; la clave solo vive en esta pestaña
-  const [override, setOverride] = useState<string | null | undefined>(undefined);
-  const adminKey = override !== undefined ? override : mounted ? readStoredKey() : null;
-  const [showLogin, setShowLogin] = useState(false);
-  const [pwd, setPwd] = useState("");
-  const [adminMsg, setAdminMsg] = useState<string | null>(null);
-
-  async function login(e: React.FormEvent) {
-    e.preventDefault();
-    setAdminMsg(null);
-    const res = await fetch("/api/leaderboard/admin", { headers: { "x-admin-key": pwd } });
-    if (res.status === 204) {
-      setOverride(pwd);
-      try {
-        sessionStorage.setItem(ADMIN_KEY_STORAGE, pwd);
-      } catch {
-        /* sin almacenamiento */
-      }
-      setShowLogin(false);
-      setPwd("");
-    } else if (res.status === 503) {
-      setAdminMsg("La administración no está configurada en el servidor.");
-    } else {
-      setAdminMsg("Clave incorrecta.");
-    }
-  }
-
-  function logout() {
-    setOverride(null);
-    try {
-      sessionStorage.removeItem(ADMIN_KEY_STORAGE);
-    } catch {
-      /* sin almacenamiento */
-    }
-  }
-
-  async function remove(entry: LeaderboardEntry) {
-    if (!adminKey) return;
-    if (!window.confirm(`¿Eliminar la marca de ${entry.pilotName} (${entry.rocketName}) del ranking?`)) return;
-    const res = await fetch(`/api/leaderboard?id=${entry.id}`, { method: "DELETE", headers: { "x-admin-key": adminKey } });
-    if (res.status === 204 || res.status === 404) {
-      setReload((n) => n + 1);
-    } else if (res.status === 401) {
-      logout();
-      setAdminMsg("La clave ya no es válida. Vuelve a iniciar sesión.");
-    } else {
-      setAdminMsg("No se pudo eliminar la marca.");
-    }
-  }
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -107,8 +59,25 @@ export function LeaderboardView() {
 
   const select = (next: () => void) => {
     setState({ status: "loading" });
+    setNotice(null);
     next();
   };
+
+  async function remove(entry: LeaderboardEntry) {
+    if (!window.confirm(`¿Eliminar la marca de ${entry.pilotName} (${entry.rocketName}) del ranking?`)) return;
+    setDeleting(entry.id);
+    setNotice(null);
+    try {
+      const res = await fetch(`/api/leaderboard?id=${entry.id}`, { method: "DELETE" });
+      if (res.status === 204 || res.status === 404) setReload((n) => n + 1);
+      else setNotice("No se pudo eliminar la marca.");
+    } catch {
+      setNotice("No se pudo eliminar la marca.");
+    } finally {
+      setDeleting(null);
+    }
+  }
+
   const tab = TABS.find((t) => t.type === type)!;
 
   return (
@@ -133,16 +102,7 @@ export function LeaderboardView() {
             </button>
           ))}
         </div>
-        <div className="mb-2 flex flex-wrap items-center gap-1" role="group" aria-label="Cantidad">
-          {adminKey ? (
-            <button type="button" className="btn btn-outline !px-4 !py-2" onClick={logout}>
-              Salir de administración
-            </button>
-          ) : (
-            <button type="button" className="btn btn-outline !px-4 !py-2" onClick={() => setShowLogin((v) => !v)}>
-              Administrar
-            </button>
-          )}
+        <div className="mb-2 flex items-center gap-1" role="group" aria-label="Cantidad">
           {LIMITS.map((l) => (
             <button
               key={l}
@@ -156,40 +116,25 @@ export function LeaderboardView() {
           ))}
         </div>
       </div>
-      {showLogin && !adminKey && (
-        <form onSubmit={login} className="panel mt-4 flex flex-wrap items-end gap-3 p-4">
-          <label className="block">
-            <span className="label mb-1 block">Clave de administrador</span>
-            <input
-              type="password"
-              autoComplete="off"
-              value={pwd}
-              onChange={(e) => setPwd(e.target.value)}
-              className="panel w-64 px-3 py-2 text-sm outline-none focus:border-bone"
-            />
-          </label>
-          <button type="submit" disabled={!pwd} className="btn btn-light">
-            Entrar
-          </button>
-        </form>
-      )}
-      {adminMsg && (
+      <p className="mt-3 text-sm text-muted">{tab.hint}</p>
+      {notice && (
         <p role="alert" className="mt-3 text-sm text-signal">
-          {adminMsg}
+          {notice}
         </p>
       )}
-      {adminKey && <p className="mt-3 text-xs text-muted">Modo administrador: puedes eliminar marcas.</p>}
-      <p className="mt-3 text-sm text-muted">{tab.hint}</p>
 
       <div className="mt-5 overflow-x-auto border border-line">
-        <table className="w-full min-w-[720px] text-left text-sm">
+        <table className="w-full min-w-[760px] text-left text-sm">
           <thead className="bg-graphite">
             <tr className="label">
-              {["#", "Piloto", "Cohete", "Apogeo (m)", "Distancia (m)", "Ángulo", "Piezas", "Fecha", ...(adminKey ? ["Acción"] : [])].map((h) => (
+              {["#", "Piloto", "Cohete", "Apogeo (m)", "Distancia (m)", "Ángulo", "Piezas", "Fecha"].map((h) => (
                 <th key={h} scope="col" className="px-4 py-3 font-semibold">
                   {h}
                 </th>
               ))}
+              <th scope="col" className="w-12 px-2 py-3">
+                <span className="sr-only">Eliminar</span>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -206,18 +151,18 @@ export function LeaderboardView() {
                   <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-muted">
                     {new Date(e.createdAt).toLocaleDateString("es-ES")}
                   </td>
-                  {adminKey && (
-                    <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        onClick={() => remove(e)}
-                        aria-label={`Eliminar la marca de ${e.pilotName}`}
-                        className="border border-signal/70 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-signal transition hover:bg-signal hover:text-bone"
-                      >
-                        Eliminar
-                      </button>
-                    </td>
-                  )}
+                  <td className="px-2 py-3 text-center">
+                    <button
+                      type="button"
+                      onClick={() => remove(e)}
+                      disabled={deleting === e.id}
+                      title="Eliminar marca"
+                      aria-label={`Eliminar la marca de ${e.pilotName}`}
+                      className="inline-grid size-8 place-items-center text-muted transition hover:bg-signal/15 hover:text-signal disabled:opacity-40"
+                    >
+                      <TrashIcon />
+                    </button>
+                  </td>
                 </tr>
               ))}
           </tbody>
