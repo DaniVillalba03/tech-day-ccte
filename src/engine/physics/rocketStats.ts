@@ -1,0 +1,39 @@
+import { getPart } from "@/data/parts";
+import type { Engine, Fin, FuelTank, NoseCone, RocketConfig, RocketStats } from "@/types";
+import { G0 } from "./constants";
+
+/** Cálculos estáticos del cohete ensamblado (SI). */
+export function computeRocketStats(config: RocketConfig): RocketStats {
+  const nose = getPart<NoseCone>(config.noseId);
+  const tanks = config.tankIds.map((id) => getPart<FuelTank>(id));
+  const engine = getPart<Engine>(config.engineId);
+  const fin = getPart<Fin>(config.finId);
+
+  const dryMass =
+    nose.dryMass + engine.dryMass + fin.dryMass + tanks.reduce((s, t) => s + t.dryMass, 0);
+  const propellantMass = tanks.reduce((s, t) => s + t.propellantMass, 0);
+  const wetMass = dryMass + propellantMass;
+
+  const massFlow = engine.thrust / (engine.isp * G0);
+  const burnTime = massFlow > 0 ? propellantMass / massFlow : 0;
+  const twr = engine.thrust / (wetMass * G0);
+  const deltaV = propellantMass > 0 ? engine.isp * G0 * Math.log(wetMass / dryMass) : 0;
+
+  const totalLength =
+    nose.length + engine.length + tanks.reduce((s, t) => s + t.length, 0);
+  const diameter = Math.max(nose.diameter, engine.diameter, ...tanks.map((t) => t.diameter));
+
+  return {
+    wetMass,
+    dryMass,
+    propellantMass,
+    thrust: engine.thrust,
+    massFlow,
+    twr,
+    burnTime,
+    deltaV,
+    cd: nose.cd + fin.cdPenalty,
+    totalLength,
+    diameter,
+  };
+}
