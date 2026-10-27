@@ -1,3 +1,5 @@
+import type { AeroPoint, MassComp } from "@/engine/physics/massProperties";
+
 export type FlightStatus = "prelaunch" | "boosting" | "coasting" | "descending" | "landed" | "crashed";
 
 /** Estado de simulación en SI: x horizontal (m), y altitud (m, 0 = suelo), theta desde la horizontal (rad). */
@@ -19,6 +21,25 @@ export interface FlightState {
   /** Aceleración propia (sin gravedad) en G */
   accelG: number;
   maxAccelG: number;
+  /** Velocidad angular de cabeceo (rad/s) */
+  omega: number;
+  /** Tiempo de combustión acumulado (s) */
+  burnTime: number;
+  /** En el riel de lanzamiento: orientación fija */
+  onRail: boolean;
+  /** Distancia recorrida por el riel (m) */
+  railS: number;
+  /** Instante de apertura del paracaídas (s), -1 si no se abrió */
+  chuteTime: number;
+  /** El paracaídas se abrió a demasiada presión dinámica y se destruyó */
+  chuteFailed: boolean;
+  mach: number;
+  /** Presión dinámica (Pa) */
+  dynPressure: number;
+  /** Ángulo de ataque (rad) */
+  aoa: number;
+  maxQ: number;
+  maxMach: number;
   /** Empuje aplicado en el último paso (N), para partículas */
   thrustNow: number;
   status: FlightStatus;
@@ -33,12 +54,20 @@ export interface PhysicsRocket {
   cd: number;
   /** Área frontal en m² */
   area: number;
-  stabilityFactor: number;
-  pitchRate: number;
   /** Área del paracaídas en m² (dimensionada para ~6 m/s de velocidad terminal) */
   chuteArea: number;
   /** Longitud total en m */
   length: number;
+  diameter: number;
+  /** Área de salida de la tobera (m²), para el empuje según la presión ambiente */
+  exitArea: number;
+  /** Componentes de masa y puntos aerodinámicos (modelo de Barrowman) */
+  comps: MassComp[];
+  aero: AeroPoint[];
+  /** Pendiente total de la fuerza normal, CNα (por rad) */
+  cna: number;
+  /** Centro de presión (m desde la nariz) */
+  cpX: number;
 }
 
 /** Datos mínimos que la UI lee a ~10 Hz. */
@@ -56,6 +85,15 @@ export interface FlightSnapshot {
   status: FlightStatus;
   warp: number;
   chuteDeployed: boolean;
+  chuteFailed: boolean;
+  mach: number;
+  /** Presión dinámica (Pa) */
+  dynPressure: number;
+  /** Ángulo de ataque (grados) */
+  aoaDeg: number;
+  /** Viento en x (m/s) */
+  wind: number;
+  onRail: boolean;
 }
 
 export interface TelemetrySample {
@@ -71,6 +109,8 @@ export interface FlightResult {
   distance: number;
   maxSpeed: number;
   maxAccelG: number;
+  maxQ: number;
+  maxMach: number;
   duration: number;
   samples: TelemetrySample[];
 }

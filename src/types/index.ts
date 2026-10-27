@@ -37,10 +37,6 @@ export interface Engine extends PartBase {
 export interface Fin extends PartBase {
   category: "fin";
   shape: FinShape;
-  /** Estabilidad aerodinámica (adimensional) */
-  stabilityFactor: number;
-  /** Velocidad de rotación (pitch) en rad/s */
-  pitchRate: number;
   /** Arrastre extra que añaden las aletas */
   cdPenalty: number;
 }
@@ -68,6 +64,11 @@ export interface RocketStats {
   burnTime: number;
   deltaV: number;
   cd: number;
+  /** Margen estático (calibres) al lanzamiento y con el propelente agotado */
+  staticMarginLaunch: number;
+  staticMarginBurnout: number;
+  /** Empuje en el vacío (N) */
+  vacuumThrust: number;
   totalLength: number;
   diameter: number;
 }

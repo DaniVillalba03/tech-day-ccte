@@ -16,7 +16,7 @@ const base: RocketConfig = {
 describe("computeRocketStats", () => {
   it("suma masas seca y húmeda", () => {
     const s = computeRocketStats(base);
-    expect(s.dryMass).toBe(25 + 100 + 150 + 30);
+    expect(s.dryMass).toBe(70 + 100 + 150 + 30);
     expect(s.propellantMass).toBe(350);
     expect(s.wetMass).toBe(s.dryMass + 350);
   });

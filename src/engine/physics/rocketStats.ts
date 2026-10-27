@@ -1,7 +1,9 @@
 import { getPart } from "@/data/parts";
 import { KNSB } from "@/data/propellant";
 import type { Engine, Fin, FuelTank, NoseCone, RocketConfig, RocketStats } from "@/types";
-import { G0 } from "./constants";
+import { G0, P0 } from "./constants";
+import { buildMassModel, staticMargin } from "./massProperties";
+import { nozzleExitRadius } from "./rocketModel";
 
 /** Cálculos estáticos del cohete ensamblado (SI). */
 export function computeRocketStats(config: RocketConfig): RocketStats {
@@ -24,6 +26,9 @@ export function computeRocketStats(config: RocketConfig): RocketStats {
     nose.length + engine.length + tanks.reduce((s, t) => s + t.length, 0);
   const diameter = Math.max(nose.diameter, engine.diameter, ...tanks.map((t) => t.diameter));
 
+  const model = buildMassModel(config);
+  const exitArea = Math.PI * nozzleExitRadius(engine) ** 2;
+
   return {
     wetMass,
     dryMass,
@@ -34,6 +39,9 @@ export function computeRocketStats(config: RocketConfig): RocketStats {
     burnTime,
     deltaV,
     cd: nose.cd + fin.cdPenalty,
+    staticMarginLaunch: staticMargin(model, 1),
+    staticMarginBurnout: staticMargin(model, 0),
+    vacuumThrust: engine.thrust + P0 * exitArea,
     totalLength,
     diameter,
   };

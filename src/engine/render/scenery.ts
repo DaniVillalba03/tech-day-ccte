@@ -1,5 +1,6 @@
 import type { Camera } from "./camera";
 import { spaceFraction } from "./sky";
+import type { Sprites } from "./textures";
 
 /** Escenario inspirado en un complejo de lanzamiento costero (tipo Cabo Cañaveral). Todo dibujado en vectores. */
 
@@ -8,44 +9,55 @@ const hash = (n: number) => {
   return v - Math.floor(v);
 };
 
-/** Nubes en el mundo (m): celdas deterministas entre ~1 y 5 km de altitud. */
-function drawClouds(ctx: CanvasRenderingContext2D, cam: Camera, altitude: number) {
-  const fade = 1 - Math.min(1, Math.max(0, (altitude - 12000) / 14000));
-  if (fade <= 0) return;
-  const cell = 1600;
+/**
+ * Nubes volumétricas en el mundo (m): cúmulos bajos, nubes medias y cirros. Devuelve qué tan dentro
+ * de una nube está la cámara (0..1) para simular la niebla al atravesarla.
+ */
+function drawClouds(ctx: CanvasRenderingContext2D, cam: Camera, altitude: number, sprites: Sprites): number {
+  const fade = 1 - Math.min(1, Math.max(0, (altitude - 14000) / 16000));
+  if (fade <= 0) return 0;
   const left = cam.x - cam.width / 2 / cam.scale;
   const right = cam.x + cam.width / 2 / cam.scale;
-  const c0 = Math.floor(left / cell) - 1;
-  const c1 = Math.min(Math.ceil(right / cell) + 1, c0 + 400);
-  for (let c = c0; c <= c1; c++) {
-    for (let layer = 0; layer < 2; layer++) {
+  let inside = 0;
+
+  // [altitud base, rango, tamaño mín., rango de tamaño, ancho de celda, probabilidad, alfa, estirado]
+  const layers: [number, number, number, number, number, number, number, number][] = [
+    [1100, 1200, 420, 620, 2300, 0.55, 0.95, 1.25],
+    [4300, 1700, 380, 460, 3200, 0.42, 0.7, 1.7],
+    [9500, 1400, 500, 520, 4200, 0.5, 0.3, 3.4],
+  ];
+  layers.forEach(([base, range, minSize, sizeRange, cell, prob, alpha, stretch], layer) => {
+    const c0 = Math.floor(left / cell) - 1;
+    const c1 = Math.min(Math.ceil(right / cell) + 1, c0 + 300);
+    for (let c = c0; c <= c1; c++) {
       const seed = c * 7 + layer * 131;
-      if (hash(seed) < 0.35) continue;
+      if (hash(seed) > prob) continue;
       const wx = c * cell + hash(seed + 1) * cell;
-      const wy = 1200 + layer * 2600 + hash(seed + 2) * 1800;
-      const size = 380 + hash(seed + 3) * 520;
+      const wy = base + hash(seed + 2) * range;
+      const size = minSize + hash(seed + 3) * sizeRange;
       const sx = cam.toScreenX(wx);
       const sy = cam.toScreenY(wy);
-      const r = size * cam.scale;
-      if (r < 1.2 || sx + r * 2 < 0 || sx - r * 2 > cam.width || sy + r < 0 || sy - r > cam.height) continue;
-      ctx.save();
-      ctx.globalAlpha = 0.85 * fade;
-      for (let i = 0; i < 5; i++) {
-        const ox = (i - 2) * r * 0.55;
-        const oy = -Math.sin((i / 4) * Math.PI) * r * 0.28;
-        const rr = r * (0.5 + 0.22 * Math.sin(i * 1.7 + seed));
-        const g = ctx.createRadialGradient(sx + ox, sy + oy - rr * 0.2, rr * 0.1, sx + ox, sy + oy, rr);
-        g.addColorStop(0, "rgba(255,252,246,1)");
-        g.addColorStop(0.7, "rgba(238,226,214,0.9)");
-        g.addColorStop(1, "rgba(220,205,200,0)");
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.ellipse(sx + ox, sy + oy, rr * 1.2, rr * 0.7, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.restore();
+      const w = size * 2 * cam.scale * stretch;
+      const h = size * 2 * cam.scale * (stretch > 2 ? 0.28 : 0.78);
+      if (w < 3 || sx + w < 0 || sx - w > cam.width || sy + h < 0 || sy - h > cam.height) continue;
+      ctx.globalAlpha = alpha * fade;
+      const sprite = sprites.clouds[Math.floor(hash(seed + 4) * sprites.clouds.length)];
+      if (hash(seed + 5) < 0.5) {
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.scale(-1, 1);
+        ctx.drawImage(sprite, -w / 2, -h / 2, w, h);
+        ctx.restore();
+      } else ctx.drawImage(sprite, sx - w / 2, sy - h / 2, w, h);
+      // ¿La cámara está dentro de esta nube?
+      const dx = (cam.x - wx) / (size * stretch);
+      const dy = (cam.y - wy) / (size * 0.78);
+      const d = Math.hypot(dx, dy);
+      if (d < 0.7) inside = Math.max(inside, (1 - d / 0.7) * alpha);
     }
-  }
+  });
+  ctx.globalAlpha = 1;
+  return inside * fade;
 }
 
 /** Fondo lejano con paralaje: línea de árboles y edificios en el horizonte. */
@@ -85,9 +97,11 @@ function drawSkyline(ctx: CanvasRenderingContext2D, cam: Camera) {
   }
 }
 
-export function drawBackdrop(ctx: CanvasRenderingContext2D, cam: Camera, altitude: number) {
-  if (spaceFraction(altitude) < 0.98) drawClouds(ctx, cam, altitude);
-  drawSkyline(ctx, cam);
+export function drawBackdrop(ctx: CanvasRenderingContext2D, cam: Camera, altitude: number, sprites: Sprites) {
+  let inside = 0;
+  if (spaceFraction(altitude) < 0.98) inside = drawClouds(ctx, cam, altitude, sprites);
+  if (altitude < 4000) drawSkyline(ctx, cam);
+  return inside;
 }
 
 function box(ctx: CanvasRenderingContext2D, cam: Camera, x0: number, y0: number, x1: number, y1: number) {
@@ -178,7 +192,7 @@ function drawAssemblyBuilding(ctx: CanvasRenderingContext2D, cam: Camera, x: num
   g.addColorStop(0, "#cfd3d9");
   g.addColorStop(1, "#9ea4ad");
   ctx.fillStyle = g;
-  box(ctx, cam, x, 0, x + W, H);
+  box(ctx, cam, x, -4, x + W, H);
   ctx.fillStyle = "rgba(20,30,45,0.35)";
   for (let i = 1; i < 8; i++) box(ctx, cam, x + (W / 8) * i - 0.5, 0, x + (W / 8) * i + 0.5, H);
   ctx.fillStyle = "#1c2430";

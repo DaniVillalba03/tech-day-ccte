@@ -25,6 +25,8 @@ export function MissionSummaryModal({ result, config, onRestart }: Props) {
     ["Distancia horizontal", `${fmt(result.distance)} m`],
     ["Velocidad máx.", `${fmt(result.maxSpeed)} m/s`],
     ["Aceleración máx.", `${fmt(result.maxAccelG, 1)} G`],
+    ["Máx. Q", `${fmt(result.maxQ / 1000, 1)} kPa`],
+    ["Mach máx.", fmt(result.maxMach, 2)],
     ["Duración", `${fmt(result.duration, 1)} s`],
   ];
 
@@ -41,7 +43,7 @@ export function MissionSummaryModal({ result, config, onRestart }: Props) {
           {config.name}
         </h2>
 
-        <dl className="mt-5 grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-5">
+        <dl className="mt-5 grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-4 lg:grid-cols-7">
           {stats.map(([k, v]) => (
             <div key={k} className="bg-graphite p-3">
               <dt className="label">{k}</dt>

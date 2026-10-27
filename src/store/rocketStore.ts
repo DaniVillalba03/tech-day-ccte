@@ -25,7 +25,7 @@ const DEFAULT_CONFIG: RocketConfig = {
   noseId: "nose-cone",
   tankIds: ["tank-m"],
   engineId: "eng-vector",
-  finId: "fin-medium",
+  finId: "fin-large",
   launchAngleDeg: 90,
 };
 

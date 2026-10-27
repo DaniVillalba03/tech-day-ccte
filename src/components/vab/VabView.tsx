@@ -33,7 +33,7 @@ function describe(p: Part): string {
     case "engine":
       return `${(p.thrust / 1000).toFixed(0)} kN · ${p.dryMass} kg`;
     case "fin":
-      return `Estab. ${p.stabilityFactor} · Giro máx. ${p.pitchRate} rad/s`;
+      return `Envergadura ${((p.diameter - 0.6) / 2).toFixed(2)} m · Cuerda ${p.length} m`;
   }
 }
 

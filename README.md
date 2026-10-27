@@ -31,9 +31,21 @@ npm run build
 
 ### Física
 
-- Gravedad constante 9,81 m/s², densidad `ρ = 1,225·e^(−h/8500)` y arrastre `Fd = ½ρv²·Cd·A`.
-- Propelente único KNSB (Isp 120 s): `ṁ = T / (Isp·g₀)`; Δv estático `Isp·g₀·ln(m₀/m_f)`.
-- No hay control manual de orientación: las aletas alinean el cohete con el viento relativo (giro gravitacional) y limitan su velocidad de giro.
+Modelo 2D en SI, integrado con Euler semi-implícito a paso fijo (1/120 s):
+
+- **Atmósfera estándar ISA** (densidad, presión, temperatura y velocidad del sonido hasta 86 km).
+- **Gravedad variable** con la altitud, `g = g₀·(R/(R+h))²`.
+- **Empuje real**: rampa de encendido, cola de combustión y empuje dependiente de la presión ambiente (`T = T₀ + (p₀ − p)·Aₑ`). Todos los motores usan KNSB (Isp 120 s), `ṁ = T / (Isp·g₀)`.
+- **Arrastre** `Fd = ½ρv²·Cd·A` con aumento transónico según el **número de Mach**, y arrastre de flujo cruzado si el cohete se cruza.
+- **Viento** con cizalladura (igual para todos los lanzamientos).
+- **Estabilidad** con el modelo de Barrowman: centro de presión (ojiva + aletas) y centro de gravedad que cambia al quemar propelente. Dinámica de rotación con momento aerodinámico y amortiguamiento. El taller muestra el **margen estático** (calibres) al lanzamiento y con el propelente agotado: un cohete inestable pierde el control.
+- **Riel de lanzamiento** de 6 m (orientación fija), **paracaídas** con apertura gradual que se destruye si se abre con demasiada presión dinámica.
+
+Sin control manual de orientación: el vuelo depende del diseño y del ángulo inicial.
+
+### Gráficos
+
+Todo vectorial y procedimental en canvas: cielo de amanecer con sol y destellos, nubes volumétricas (con niebla al atravesarlas), estrellas y Vía Láctea, terreno con vegetación, playa y océano animado, **curvatura de la Tierra** con halo atmosférico, pluma de escape que cambia con la altitud (discos de choque a baja altura), humo persistente que deriva con el viento, polvo en el despegue, cono de vapor transónico y temblor de cámara.
 
 ## Persistencia del ranking
 

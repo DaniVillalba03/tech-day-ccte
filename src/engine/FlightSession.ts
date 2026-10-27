@@ -3,6 +3,8 @@ import type { FlightResult, FlightSnapshot, FlightState, PhysicsRocket } from "@
 import { GameLoop } from "./GameLoop";
 import { InputController } from "./input";
 import { buildPhysicsRocket, createInitialState } from "./physics/rocketModel";
+import { windAt } from "./physics/aerodynamics";
+import { atmosphere } from "./physics/atmosphere";
 import { PHYSICS_DT, updatePhysics } from "./physics/updatePhysics";
 import { ParticleSystem } from "./render/particles";
 import { Renderer } from "./render/Renderer";
@@ -90,12 +92,16 @@ export class FlightSession {
 
   private frame(frameDt: number) {
     const s = this.state;
+    const simDt = frameDt * this.loop.warp;
     if (s.thrustNow > 0) {
       const n = this.renderer.nozzle(s);
-      this.particles.emit(n.x, n.y, n.dx, n.dy, s.thrustNow / this.rocket.thrust, frameDt * this.loop.warp);
+      const frac = Math.min(1.3, s.thrustNow / this.rocket.thrust);
+      this.particles.emitFlame(n.x, n.y, n.dx, n.dy, frac, simDt);
+      this.particles.emitSmoke(n.x, n.y, s.vx, s.vy, n.dx, n.dy, atmosphere(s.y).density, simDt);
+      if (s.y < 30) this.particles.emitDust(s.x, frac * (1 - s.y / 30), simDt);
     }
-    this.particles.update(frameDt * this.loop.warp);
-    this.renderer.render(s, this.particles, frameDt);
+    this.particles.update(simDt, windAt);
+    this.renderer.render(s, this.particles, frameDt, performance.now() / 1000);
 
     const now = performance.now();
     const ended = s.status === "landed" || s.status === "crashed";
@@ -115,6 +121,8 @@ export class FlightSession {
       distance: Math.abs(s.x),
       maxSpeed: s.maxSpeed,
       maxAccelG: s.maxAccelG,
+      maxQ: s.maxQ,
+      maxMach: s.maxMach,
       duration: s.t,
       samples: [...this.telemetry.samples],
     };
@@ -135,6 +143,12 @@ export class FlightSession {
       status: s.status,
       warp: this.loop.warp,
       chuteDeployed: s.chuteDeployed,
+      chuteFailed: s.chuteFailed,
+      mach: s.mach,
+      dynPressure: s.dynPressure,
+      aoaDeg: (s.aoa * 180) / Math.PI,
+      wind: windAt(s.y),
+      onRail: s.onRail,
     };
   }
 }

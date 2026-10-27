@@ -4,11 +4,11 @@ import type { Engine, Fin, FuelTank, NoseCone, Part } from "@/types";
 export const MAX_TANKS = 4;
 
 export const NOSES: NoseCone[] = [
-  { id: "nose-cone", name: "Ojiva cónica", category: "nose", shape: "conical", dryMass: 25, length: 1.2, diameter: 0.6, cd: 0.3 },
-  { id: "nose-ogive", name: "Ojiva ojival", category: "nose", shape: "ogive", dryMass: 35, length: 1.5, diameter: 0.6, cd: 0.22 },
-  { id: "nose-parabolic", name: "Ojiva parabólica", category: "nose", shape: "parabolic", dryMass: 30, length: 1.4, diameter: 0.6, cd: 0.25 },
-  { id: "nose-elliptic", name: "Ojiva elíptica", category: "nose", shape: "elliptical", dryMass: 28, length: 1.0, diameter: 0.6, cd: 0.35 },
-  { id: "nose-blunt", name: "Ojiva roma", category: "nose", shape: "blunt", dryMass: 15, length: 0.6, diameter: 0.6, cd: 0.6 },
+  { id: "nose-cone", name: "Ojiva cónica", category: "nose", shape: "conical", dryMass: 70, length: 1.2, diameter: 0.6, cd: 0.3 },
+  { id: "nose-ogive", name: "Ojiva ojival", category: "nose", shape: "ogive", dryMass: 85, length: 1.5, diameter: 0.6, cd: 0.22 },
+  { id: "nose-parabolic", name: "Ojiva parabólica", category: "nose", shape: "parabolic", dryMass: 78, length: 1.4, diameter: 0.6, cd: 0.25 },
+  { id: "nose-elliptic", name: "Ojiva elíptica", category: "nose", shape: "elliptical", dryMass: 72, length: 1.0, diameter: 0.6, cd: 0.35 },
+  { id: "nose-blunt", name: "Ojiva roma", category: "nose", shape: "blunt", dryMass: 45, length: 0.6, diameter: 0.6, cd: 0.6 },
 ];
 
 export const TANKS: FuelTank[] = [
@@ -29,11 +29,11 @@ export const ENGINES: Engine[] = [
 ];
 
 export const FINS: Fin[] = [
-  { id: "fin-small", name: "Aletas rectas", category: "fin", shape: "rect", dryMass: 15, stabilityFactor: 0.5, pitchRate: 0.9, cdPenalty: 0.02, length: 0.8, diameter: 1.0 },
-  { id: "fin-clipped", name: "Aletas recortadas", category: "fin", shape: "clipped", dryMass: 25, stabilityFactor: 0.8, pitchRate: 0.75, cdPenalty: 0.04, length: 1.0, diameter: 1.2 },
-  { id: "fin-medium", name: "Aletas trapezoidales", category: "fin", shape: "trapezoid", dryMass: 30, stabilityFactor: 1.0, pitchRate: 0.6, cdPenalty: 0.05, length: 1.0, diameter: 1.3 },
-  { id: "fin-delta", name: "Aletas delta", category: "fin", shape: "delta", dryMass: 35, stabilityFactor: 1.2, pitchRate: 0.5, cdPenalty: 0.07, length: 1.4, diameter: 1.5 },
-  { id: "fin-large", name: "Aletas en flecha", category: "fin", shape: "swept", dryMass: 50, stabilityFactor: 1.6, pitchRate: 0.35, cdPenalty: 0.1, length: 1.3, diameter: 1.7 },
+  { id: "fin-small", name: "Aletas rectas", category: "fin", shape: "rect", dryMass: 15, cdPenalty: 0.02, length: 0.9, diameter: 1.3 },
+  { id: "fin-clipped", name: "Aletas recortadas", category: "fin", shape: "clipped", dryMass: 25, cdPenalty: 0.04, length: 1.2, diameter: 1.6 },
+  { id: "fin-medium", name: "Aletas trapezoidales", category: "fin", shape: "trapezoid", dryMass: 30, cdPenalty: 0.05, length: 1.4, diameter: 1.9 },
+  { id: "fin-delta", name: "Aletas delta", category: "fin", shape: "delta", dryMass: 35, cdPenalty: 0.07, length: 1.8, diameter: 2.1 },
+  { id: "fin-large", name: "Aletas en flecha", category: "fin", shape: "swept", dryMass: 50, cdPenalty: 0.1, length: 1.7, diameter: 2.5 },
 ];
 
 export const ALL_PARTS: Part[] = [...NOSES, ...TANKS, ...ENGINES, ...FINS];

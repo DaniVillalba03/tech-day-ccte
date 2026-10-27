@@ -12,7 +12,7 @@ export function rocketLength(config: RocketConfig): number {
  * Dibuja el cohete horizontal en metros con el origen en su centro, nariz hacia +x.
  * El llamador aplica translate/rotate/scale.
  */
-export function drawRocketSprite(ctx: CanvasRenderingContext2D, config: RocketConfig, chute: boolean) {
+export function drawRocketSprite(ctx: CanvasRenderingContext2D, config: RocketConfig) {
   const nose = getPart<NoseCone>(config.noseId);
   const tanks = config.tankIds.map((id) => getPart<FuelTank>(id));
   const engine = getPart<Engine>(config.engineId);
@@ -32,20 +32,6 @@ export function drawRocketSprite(ctx: CanvasRenderingContext2D, config: RocketCo
   }
   drawNose(ctx, nose, x);
 
-  if (chute) {
-    ctx.strokeStyle = "#f9f9f7";
-    ctx.lineWidth = 0.05;
-    ctx.beginPath();
-    ctx.moveTo(L / 2, 0);
-    ctx.lineTo(L / 2 + 4, -2.5);
-    ctx.moveTo(L / 2, 0);
-    ctx.lineTo(L / 2 + 4, 2.5);
-    ctx.stroke();
-    ctx.fillStyle = "#d52b32";
-    ctx.beginPath();
-    ctx.ellipse(L / 2 + 5, 0, 1.2, 3.2, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
 }
 
 export { R as ROCKET_RADIUS };

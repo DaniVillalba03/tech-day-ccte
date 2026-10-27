@@ -38,6 +38,12 @@ export function Hud({ snap }: { snap: FlightSnapshot | null }) {
     status: "prelaunch",
     warp: 1,
     chuteDeployed: false,
+    chuteFailed: false,
+    mach: 0,
+    dynPressure: 0,
+    aoaDeg: 0,
+    wind: 0,
+    onRail: true,
   };
   const lowFuel = s.fuelPct < 15;
 
@@ -54,13 +60,29 @@ export function Hud({ snap }: { snap: FlightSnapshot | null }) {
           <Stat label="Apogeo" value={fmt(s.apogee)} unit="m" />
           <Stat label="Distancia" value={fmt(s.distance)} unit="m" />
           <Stat label="Velocidad" value={fmt(s.speed)} unit="m/s" />
+          <Stat label="Mach" value={fmt(s.mach, 2)} unit="" />
           <Stat label="Aceleración" value={fmt(s.accelG, 1)} unit="G" />
+          <Stat label="Presión din." value={fmt(s.dynPressure / 1000, 1)} unit="kPa" />
+          <Stat label="Áng. ataque" value={fmt(s.aoaDeg, 1)} unit="°" />
           <Stat label="Pitch" value={fmt(s.thetaDeg)} unit="°" />
         </dl>
         <Navball thetaDeg={s.thetaDeg} pathDeg={s.pathDeg} showPath={s.speed > 5} />
       </div>
 
-      <div className="mt-4">
+      <div className="mt-3 flex items-center justify-between border-t border-line pt-2 text-[0.7rem] text-muted">
+        <span>
+          Viento <span className="font-mono text-bone">{fmt(Math.abs(s.wind), 1)} m/s {s.wind < 0 ? "←" : s.wind > 0 ? "→" : ""}</span>
+        </span>
+        {s.chuteFailed ? (
+          <span className="font-semibold text-signal">¡Paracaídas destruido!</span>
+        ) : s.chuteDeployed ? (
+          <span className="font-semibold text-bone">Paracaídas abierto</span>
+        ) : s.onRail && s.status !== "prelaunch" ? (
+          <span>En riel</span>
+        ) : null}
+      </div>
+
+      <div className="mt-3">
         <div className="mb-1 flex justify-between">
           <span className="label">Combustible</span>
           <span className={`font-mono text-xs ${lowFuel ? "text-signal" : ""}`}>{fmt(s.fuelPct)} %</span>

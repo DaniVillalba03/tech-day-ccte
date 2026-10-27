@@ -74,7 +74,7 @@ function draw(
   ctx.translate(cx, PREVIEW_H / 2);
   ctx.rotate(-Math.PI / 2);
   ctx.scale(s, s);
-  drawRocketSprite(ctx, config, false);
+  drawRocketSprite(ctx, config);
   ctx.restore();
 
   // Mientras se arrastra: marca dónde encaja la pieza; la zona bajo el cursor se resalta en rojo
