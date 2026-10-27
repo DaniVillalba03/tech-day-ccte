@@ -27,7 +27,7 @@ npm run build
 - `src/engine`: física y render en TypeScript puro, sin React. Paso fijo de 1/120 s, Euler semi-implícito, unidades SI (`y = 0` es el suelo).
 - La UI solo lee un snapshot de telemetría publicado a ~10 Hz en Zustand (`src/store/flightStore.ts`), por lo que React no re-renderiza a 60 FPS.
 - `src/lib/leaderboard`: repositorio intercambiable (`LeaderboardRepository`) con implementación JSON local y Supabase.
-- `src/app/api/leaderboard`: `GET ?type=apogee|distance&limit=10|50` y `POST` con validación de nombres, piezas, rangos y ángulo.
+- `src/app/api/leaderboard`: `GET ?type=apogee|distance&limit=10|50`, `POST` con validación de nombres, piezas, rangos y ángulo, y `DELETE ?id=<uuid>` (icono de papelera en el ranking; sin autenticación).
 
 ### Física
 
