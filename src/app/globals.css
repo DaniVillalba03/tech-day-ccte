@@ -1,26 +1,96 @@
 @import "tailwindcss";
 
+/* Sistema de diseño inspirado en ccte.space */
+@theme {
+  --color-ink: #0a0c0f;
+  --color-graphite: #12151a;
+  --color-steel: #31363e;
+  --color-paper: #f1f0eb;
+  --color-paper-deep: #e6e5df;
+  --color-bone: #f9f9f7;
+  --color-muted: #a8adb5;
+  --color-signal: #d52b32;
+  --color-cobalt: #244b8f;
+  --color-line: rgb(255 255 255 / 0.2);
+
+  --font-sans: var(--font-plex-sans), Arial, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --gutter: clamp(1.25rem, 4vw, 4.5rem);
+  --content: 1440px;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-ink);
+  color: var(--color-bone);
+  font-family: var(--font-sans);
+}
+
+@layer components {
+  .shell {
+    margin-inline: auto;
+    width: 100%;
+    max-width: var(--content);
+    padding-inline: var(--gutter);
+  }
+
+  /* Etiqueta en mayúsculas con trazo rojo, como los "eyebrow" de CCTE */
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+  .eyebrow::before {
+    content: "";
+    width: 2rem;
+    height: 2px;
+    background: var(--color-signal);
+  }
+
+  .label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .panel {
+    border: 1px solid var(--color-line);
+    background: color-mix(in srgb, var(--color-graphite) 88%, transparent);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    border: 1px solid var(--color-line);
+    padding: 0.85rem 1.4rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .btn-light {
+    background: var(--color-bone);
+    color: var(--color-ink);
+    border-color: var(--color-bone);
+  }
+  .btn-light:hover {
+    background: var(--color-signal);
+    border-color: var(--color-signal);
+    color: var(--color-bone);
+  }
+  .btn-outline:hover {
+    border-color: var(--color-bone);
+  }
 }

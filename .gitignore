@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ranking local de desarrollo
+/.data
+!.env.example
+
+# configuración local de herramientas
+/.claude
