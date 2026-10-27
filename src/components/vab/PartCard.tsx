@@ -26,7 +26,7 @@ export function PartCard({ part, selected, stats, onClick, onDragStart, onDragEn
         onDragStart(part);
       }}
       onDragEnd={onDragEnd}
-      className={`cursor-grab border-l-2 p-3 text-left transition active:cursor-grabbing ${
+      className={`cursor-grab border-b border-r border-line border-l-2 p-3 text-left transition active:cursor-grabbing ${
         selected ? "border-l-signal bg-graphite" : "border-l-transparent bg-ink hover:bg-graphite"
       }`}
     >

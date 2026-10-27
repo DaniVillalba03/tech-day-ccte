@@ -43,9 +43,9 @@ export function MissionSummaryModal({ result, config, onRestart }: Props) {
           {config.name}
         </h2>
 
-        <dl className="mt-5 grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-4 lg:grid-cols-7">
+        <dl className="mt-5 grid grid-cols-2 border-l border-t border-line sm:grid-cols-4 lg:grid-cols-7">
           {stats.map(([k, v]) => (
-            <div key={k} className="bg-graphite p-3">
+            <div key={k} className="border-b border-r border-line bg-graphite p-3">
               <dt className="label">{k}</dt>
               <dd className="mt-1 font-mono text-lg">{v}</dd>
             </div>

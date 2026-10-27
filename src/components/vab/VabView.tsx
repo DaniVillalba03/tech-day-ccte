@@ -229,7 +229,7 @@ export function VabView() {
           )
         )}
 
-        <div className="grid gap-px border border-line bg-line sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid border-l border-t border-line sm:grid-cols-2 xl:grid-cols-3">
           {current.parts.map((p) => (
             <PartCard
               key={p.id}
